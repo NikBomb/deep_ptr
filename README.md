@@ -1,5 +1,6 @@
 # deep_ptr
-Implementation of a smart pointer that allows deep copy
+
+Single header implementation of a smart pointer that allows deep copy
 
 Deep_ptr allows the safety of a unique ptr with copy semantics.
 When a copy is required the deep_ptr copies the resource. 
