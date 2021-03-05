@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31005.135
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Interfaces", "Interfaces\Interfaces.vcxproj", "{C3600972-2D00-41A9-A5DE-7A38A6F7239F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "deep_ptr", "deep_ptr\deep_ptr.vcxproj", "{C3600972-2D00-41A9-A5DE-7A38A6F7239F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

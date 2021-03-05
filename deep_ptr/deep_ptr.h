@@ -1,6 +1,4 @@
 #pragma once
-
-
 // deep_ptr implementation 
 
 // Wrapper around unique_ptr: deep_ptr allows the safety of a unique ptr with copy semantics.

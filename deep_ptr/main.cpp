@@ -1,7 +1,4 @@
-#include <type_traits>
-
 #include <iostream>
-
 #include "deep_ptr.h"
 
 
