@@ -8,48 +8,6 @@
 #include <type_traits>
 #include "deep_ptr.h"
 
-//template <typename T>
-//class has_clone
-//{
-//private:
-//	typedef char YesType[1];
-//	typedef char NoType[2];
-//
-//	template <typename C> static YesType& test(decltype(&C::clone));
-//	template <typename C> static NoType& test(...);
-//
-//
-//public:
-//	enum { value = sizeof(test<T>(0)) == sizeof(YesType)};
-//};
-//
-//template <typename T>
-//struct deep_copy_ptr : public std::unique_ptr<T>
-//{
-//	using std::unique_ptr<T>::unique_ptr;
-//	deep_copy_ptr() {};
-//	deep_copy_ptr(deep_copy_ptr<T> const& other)
-//	{
-//		if constexpr(has_clone<T>::value) {
-//			this->reset(other->clone());
-//		}
-//		else {
-//			auto value = *other.get();
-//			this->reset(new T(value));
-//		}
-//	}
-//	deep_copy_ptr<T>& operator=(deep_copy_ptr<T> const& other)
-//	{
-//		if constexpr (has_clone<T>::value) {
-//			this->reset(other->clone());
-//		}
-//		else {
-//			auto value = *other.get();
-//			this->reset(new T(value));
-//		}
-//		return *this;
-//	}
-//};
 
 struct Icomputer {
 	virtual std::any getInput() = 0;
@@ -68,13 +26,16 @@ public:
 	};
 	
 	Computer() {};
-	Computer(double n1, double n2) : inp{n1, n2 } {}
+	Computer(double n1, double n2) : inp{n1, n2 } {
+		std::cout << "Calling Constructor" << "\n";
+	}
 
 	virtual std::any getInput() {
 		return std::any{&inp};
 	};
 	
 	virtual Icomputer* clone() override {
+		std::cout << "Calling clone"  << "\n";
 		return new Computer(*this);
 	}
 
@@ -82,41 +43,28 @@ public:
 		return inp.n1 + inp.n2;
 	};
 
+	virtual ~Computer() { std::cout << "calling destructor" << "\n"; }
 private:
 	CompInput inp;
 };
 
 
 class compUser {
-
 	deep_ptr<Icomputer> m_comp;
 public:
-	compUser(deep_ptr<Icomputer> comp) : m_comp{ comp } {};
+	compUser(const deep_ptr<Icomputer>& comp) : m_comp{ comp } {};
 	double compute() {
 		return m_comp->compute();
 	}
 };
 
-
-void trial(std::true_type cond) {
-	std::cout << "I am true";
-}
-
-
-void trial(std::false_type cond) {
-	std::cout << "I am false";
-}
-
 int main() {
-
-	trial(details::has_clone<int>::value);
-
-	//static_assert(details::has_clone<int>::value == std::false_type{}, "Has clone");
 	
+	//std::unique_ptr<Icomputer> a = std::make_unique<Computer>(1, 2);
+	 //deep_ptr<Icomputer> c = make_deep<Computer>(1, 2);
 	deep_ptr<Icomputer> c{ new Computer(1, 2) };
-
-	//auto user = compUser(c);
-	//auto copied_user = user;
-	
-	//auto res = copied_user.compute();
+	auto user = compUser(c);
+	auto copied_user = user;
+	//
+	auto res = copied_user.compute();
 }

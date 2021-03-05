@@ -1,42 +1,41 @@
 #pragma once
 
 #include <memory>
-
+#include "type_traits"
 namespace details {
-	
-	typedef char Yes[1];
-	typedef char No[2];
+
 
 	template <typename T>
 	class has_clone
 	{
 	private:
+		typedef char Yes[1];
+		typedef char No[2];
 
-		
-		template <typename C> static constexpr Yes& test(decltype(&C::clone));
-		template <typename C> static constexpr No& test(...);
+
+		template <typename C> static constexpr Yes& test(decltype(&C::clone)) {};
+		template <typename C> static constexpr No& test(...) {};
 	public:
-		enum { value = sizeof(test<T>(0)) == sizeof(Yes) };
+		static constexpr bool value = std::is_same_v<Yes&, decltype(test<T>(0))>;
 	};
 
-
 	template <typename T>
-	auto copy_impl(const T* ptr, std::true_type) {
-		return ptr ? nullptr : ptr->clone().release();
-	}
-
-	template <typename T>
-	auto copy_impl(const T* ptr, std::false_type) {
-		return ptr ? nullptr : new T(*ptr);
-	}
-
-	template <typename T>
-	auto copy(const T* ptr) {
-		return copy_impl(ptr, has_clone<T>::value);
+	T* copy(T* ptr) {
+		if (ptr) {
+			if constexpr (has_clone<T>::value) {
+				return ptr->clone();
+			}
+			else {
+				return  new T(*ptr);
+			}
+		}
+		else {
+			return nullptr;
+		}
 	}
 }
 
-template <typename T>
+template <typename T, typename Del = std::default_delete<T>>
 class deep_ptr : public std::unique_ptr<T> {
 
 public:
@@ -115,5 +114,39 @@ public:
 		std::unique_ptr<T>::reset(other.release());
 		return *this;
 	};
+	
+	bool empty() const noexcept { return !(*this); }
 
+	T* get() const noexcept { return std::unique_ptr<T>::get(); }
 };
+
+// C++14 make_unique
+namespace detail {
+	template<class>
+	constexpr bool is_unbounded_array_v = false;
+	template<class T>
+	constexpr bool is_unbounded_array_v<T[]> = true;
+
+	template<class>
+	constexpr bool is_bounded_array_v = false;
+	template<class T, std::size_t N>
+	constexpr bool is_bounded_array_v<T[N]> = true;
+} // namespace detail
+
+
+template<class T, class... Args>
+std::enable_if_t<!std::is_array<T>::value, deep_ptr<T>>
+make_deep(Args&&... args)
+{
+	return deep_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+template<class T>
+std::enable_if_t<detail::is_unbounded_array_v<T>, deep_ptr<T>>
+make_deep(std::size_t n)
+{
+	return deep_ptr<T>(new std::remove_extent_t<T>[n]());
+}
+
+template<class T, class... Args>
+std::enable_if_t<detail::is_bounded_array_v<T>> make_deep(Args&&...) = delete;
