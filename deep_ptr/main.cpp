@@ -53,5 +53,5 @@ int main() {
 	auto res = copied_user.compute();
 	auto moved_user = std::move(user);  // User will be in a legal state but the deep_ptr to the interface is null
 
-	// The number of calls to clone and constructor have to be equals to the number of destructor
+	// The number of calls to clone and constructor have to be equal to the number of calls to destructor
 }
