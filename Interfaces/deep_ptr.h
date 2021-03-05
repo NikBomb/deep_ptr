@@ -1,7 +1,15 @@
 #pragma once
 
+
+// deep_ptr implementation 
+
+// Wrapper around unique_ptr: deep_ptr allows the safety of a unique ptr with copy semantics.
+// When a copy is required the deep_ptr copies the resource. 
+// To avoid object slicing in a class hierarchy ann object of type T
+// has to provide an accessible T* clone() method, which will be chosen over the copy constructor.  
+
 #include <memory>
-#include "type_traits"
+
 namespace details {
 
 
@@ -20,7 +28,7 @@ namespace details {
 	};
 
 	template <typename T>
-	T* copy(T* ptr) {
+	T* copy_or_clone(T* ptr) {
 		if (ptr) {
 			if constexpr (has_clone<T>::value) {
 				return ptr->clone();
@@ -43,11 +51,11 @@ public:
 
 	explicit deep_ptr(T* obj) noexcept : std::unique_ptr<T>(obj) {};
 
-	deep_ptr(const deep_ptr& other) : std::unique_ptr<T>(details::copy(other.get())) {};
+	deep_ptr(const deep_ptr& other) : std::unique_ptr<T>(details::copy_or_clone(other.get())) {};
 
 	template <typename U>
 	explicit deep_ptr(const std::unique_ptr<U>& other)
-		: std::unique_ptr<T>(details::copy(other.get())) {}
+		: std::unique_ptr<T>(details::copy_or_clone(other.get())) {}
 
 	deep_ptr(deep_ptr&& other) noexcept
 		: std::unique_ptr<T>(other.release()) {}
@@ -65,7 +73,7 @@ public:
 	}
 
 	deep_ptr& operator=(const T& other) {
-		std::unique_ptr<T>::reset(details::copy(&other));
+		std::unique_ptr<T>::reset(details::copy_or_clone(&other));
 		return *this;
 	}
 
@@ -80,14 +88,14 @@ public:
 
 	deep_ptr& operator=(const std::unique_ptr<T>& src) {
 		if (&src != this) {
-			std::unique_ptr<T>::reset(copy(src.get()));
+			std::unique_ptr<T>::reset(copy_or_clone(src.get()));
 		}
 		return *this;
 	}
 
 	template <typename U>
 	deep_ptr& operator=(const std::unique_ptr<U>& other) {
-		std::unique_ptr<T>::reset(details::copy(other.get()));
+		std::unique_ptr<T>::reset(details::copy_or_clone(other.get()));
 		return *this;
 	}
 
@@ -120,33 +128,3 @@ public:
 	T* get() const noexcept { return std::unique_ptr<T>::get(); }
 };
 
-// C++14 make_unique
-namespace detail {
-	template<class>
-	constexpr bool is_unbounded_array_v = false;
-	template<class T>
-	constexpr bool is_unbounded_array_v<T[]> = true;
-
-	template<class>
-	constexpr bool is_bounded_array_v = false;
-	template<class T, std::size_t N>
-	constexpr bool is_bounded_array_v<T[N]> = true;
-} // namespace detail
-
-
-template<class T, class... Args>
-std::enable_if_t<!std::is_array<T>::value, deep_ptr<T>>
-make_deep(Args&&... args)
-{
-	return deep_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
-template<class T>
-std::enable_if_t<detail::is_unbounded_array_v<T>, deep_ptr<T>>
-make_deep(std::size_t n)
-{
-	return deep_ptr<T>(new std::remove_extent_t<T>[n]());
-}
-
-template<class T, class... Args>
-std::enable_if_t<detail::is_bounded_array_v<T>> make_deep(Args&&...) = delete;

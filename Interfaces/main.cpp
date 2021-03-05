@@ -1,22 +1,16 @@
-#include <any>
-#include <type_traits>
-
-#include "memory"
 #include <type_traits>
 
 #include <iostream>
-#include <type_traits>
+
 #include "deep_ptr.h"
 
 
 struct Icomputer {
-	virtual std::any getInput() = 0;
 	virtual double compute() = 0;
 	virtual Icomputer* clone() = 0;
 	virtual ~Icomputer() = default;
 	
 };
-
 
 class Computer : public Icomputer{
 public:
@@ -29,12 +23,8 @@ public:
 	Computer(double n1, double n2) : inp{n1, n2 } {
 		std::cout << "Calling Constructor" << "\n";
 	}
-
-	virtual std::any getInput() {
-		return std::any{&inp};
-	};
 	
-	virtual Icomputer* clone() override {
+	virtual Computer* clone() override {
 		std::cout << "Calling clone"  << "\n";
 		return new Computer(*this);
 	}
@@ -60,11 +50,11 @@ public:
 
 int main() {
 	
-	//std::unique_ptr<Icomputer> a = std::make_unique<Computer>(1, 2);
-	 //deep_ptr<Icomputer> c = make_deep<Computer>(1, 2);
 	deep_ptr<Icomputer> c{ new Computer(1, 2) };
 	auto user = compUser(c);
-	auto copied_user = user;
-	//
+	auto copied_user = user;  //This is legal syntax because the member interface is a deep_ptr
 	auto res = copied_user.compute();
+	auto moved_user = std::move(user);  // User will be in a legal state but the deep_ptr to the interface is null
+
+	// The number of calls to clone and constructor have to be equals to the number of destructor
 }
