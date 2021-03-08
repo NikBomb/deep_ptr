@@ -1,16 +1,17 @@
 #include <iostream>
 #include "deep_ptr.h"
-
+#include "Cloneable.h"
 
 struct Icomputer {
+	BASE_CLONEABLE(Icomputer);
 	virtual double compute() = 0;
-	virtual Icomputer* clone() = 0;
 	virtual ~Icomputer() = default;
-	
 };
 
-class Computer : public Icomputer{
+class Computer : public Icomputer {
 public:
+
+	CLONEABLE(Computer);
 	struct CompInput {
 		double n1;
 		double n2;
@@ -21,11 +22,6 @@ public:
 		std::cout << "Calling Constructor" << "\n";
 	}
 	
-	virtual Computer* clone() override {
-		std::cout << "Calling clone"  << "\n";
-		return new Computer(*this);
-	}
-
 	virtual double compute() {
 		return inp.n1 + inp.n2;
 	};

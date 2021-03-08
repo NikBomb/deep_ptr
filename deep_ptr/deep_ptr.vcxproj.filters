@@ -23,5 +23,8 @@
     <ClInclude Include="deep_ptr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Cloneable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
