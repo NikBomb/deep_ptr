@@ -47,11 +47,10 @@ public:
 
 int main() {
 	
-	deep_ptr<Icomputer> c{ new Computer(1, 2) };
+	deep_ptr<Icomputer> c = make_deep<Computer>(1, 2);
 	auto user = compUser(c);
 	auto copied_user = user;  //This is legal syntax because the member interface is a deep_ptr
 	auto res = copied_user.compute();
 	auto moved_user = std::move(user);  // User will be in a legal state but the deep_ptr to the interface is null
-
 	// The number of calls to clone and constructor have to be equals to the number of destructor
 }
