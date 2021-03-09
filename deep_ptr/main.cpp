@@ -2,16 +2,19 @@
 #include "deep_ptr.h"
 #include "Cloneable.h"
 
-struct Icomputer {
-	BASE_CLONEABLE(Icomputer);
+
+
+struct Icomputer : public Cloneable<Icomputer> {
+	
+	// BASE_CLONEABLE(Icomputer);
 	virtual double compute() = 0;
 	virtual ~Icomputer() = default;
 };
 
-class Computer : public Icomputer {
+class Computer :  public Cloner<Icomputer, Computer> {
 public:
 
-	CLONEABLE(Computer);
+	//CLONEABLE(Computer);
 	struct CompInput {
 		double n1;
 		double n2;
@@ -43,10 +46,19 @@ public:
 
 int main() {
 	
+	// Create a IComputer using deep ptr and copy it as interface 
 	deep_ptr<Icomputer> c = make_deep<Computer>(1, 2);
 	auto user = compUser(c);
 	auto copied_user = user;  //This is legal syntax because the member interface is a deep_ptr
 	auto res = copied_user.compute();
+	// Create a deep_ptr of concrete class clone it as deep ptr and use it
+	// Note that while we return raw pointers we pass the ownership to a deep_ptr
+	// This is reasonable behaviour. The user is expected to manege the memory returned by clone as he pleases.
+	deep_ptr<Computer> k = make_deep<Computer>(1, 2);
+	auto l = deep_ptr<Computer>(k->clone());
+	auto res2 = l->compute();
+
+	// Move the original user 
 	auto moved_user = std::move(user);  // User will be in a legal state but the deep_ptr to the interface is null
 
 	// The number of calls to clone and constructor have to be equal to the number of calls to destructor

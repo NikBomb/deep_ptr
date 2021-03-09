@@ -5,7 +5,8 @@
 // When a copy is required the deep_ptr copies the resource. 
 // To avoid object slicing in a class hierarchy ann object of type T
 // has to provide an accessible T* clone() method, which will be chosen over the copy constructor.  
-// Note that this library comes with two companion macros for this purpose defined in Cloneable.h
+// Note that this library comes with two companion macros for this purpose defined in Cloneable.h.
+// If macros are frowned upon, use the Cloneable interface defined in Cloneable.h
 #include <memory>
 
 namespace deep_ptr_details {
@@ -29,7 +30,7 @@ namespace deep_ptr_details {
 	T* copy_or_clone(T* ptr) {
 		if (ptr) {
 			if constexpr (has_clone<T>::value) {
-				return ptr->clone();
+				return static_cast<T*>(ptr->clone());
 			}
 			else {
 				return  new T(*ptr);
