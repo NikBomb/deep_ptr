@@ -6,7 +6,7 @@
 
 struct Icomputer : public Cloneable<Icomputer> {
 	
-	// BASE_CLONEABLE(Icomputer);
+	// CLONEABLE(Icomputer);
 	virtual double compute() = 0;
 	virtual ~Icomputer() = default;
 };
@@ -14,7 +14,7 @@ struct Icomputer : public Cloneable<Icomputer> {
 class Computer :  public Cloner<Icomputer, Computer> {
 public:
 
-	//CLONEABLE(Computer);
+	//CLONER(Computer);
 	struct CompInput {
 		double n1;
 		double n2;
