@@ -6,15 +6,13 @@
 
 struct Icomputer : public Cloneable<Icomputer> {
 	
-	// CLONEABLE(Icomputer);
 	virtual double compute() = 0;
 	virtual ~Icomputer() = default;
 };
 
-class Computer :  public Cloner<Icomputer, Computer> {
+class Computer : public Cloner<Icomputer, Computer> {
 public:
 
-	//CLONER(Computer);
 	struct CompInput {
 		double n1;
 		double n2;
@@ -52,10 +50,8 @@ int main() {
 	auto copied_user = user;  //This is legal syntax because the member interface is a deep_ptr
 	auto res = copied_user.compute();
 	// Create a deep_ptr of concrete class clone it as deep ptr and use it
-	// Note that while we return raw pointers we pass the ownership to a deep_ptr
-	// This is reasonable behaviour. The user is expected to manage the memory returned by clone as he pleases.
 	deep_ptr<Computer> k = make_deep<Computer>(1, 2);
-	auto l = deep_ptr<Computer>(k->clone());
+	auto l = k->clone();
 	auto res2 = l->compute();
 
 	// Move the original user 

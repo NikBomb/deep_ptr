@@ -3,10 +3,10 @@
 
 // Wrapper around unique_ptr: deep_ptr allows the safety of a unique ptr with copy semantics.
 // When a copy is required the deep_ptr copies the resource. 
-// To avoid object slicing in a class hierarchy ann object of type T
-// has to provide an accessible T* clone() method, which will be chosen over the copy constructor.  
-// Note that this library comes with two companion macros for this purpose defined in Cloneable.h.
-// If macros are frowned upon, use the Cloneable interface defined in Cloneable.h
+// To avoid object slicing in a class hierarchy an object of type T
+// has to provide an accessible deep_ptr<T> clone() method, which will be chosen over the copy constructor.  
+// Note that this library comes with two companion interfaces for this purpose defined in Cloneable.h.
+
 #include <memory>
 
 namespace deep_ptr_details {
@@ -26,21 +26,7 @@ namespace deep_ptr_details {
 		static constexpr bool value = std::is_same_v<Yes&, decltype(test<T>(0))>;
 	};
 
-	template <typename T>
-	T* copy_or_clone(T* ptr) {
-		if (ptr) {
-			if constexpr (has_clone<T>::value) {
-				return static_cast<T*>(ptr->clone());
-			}
-			else {
-				return  new T(*ptr);
-			}
-		}
-		else {
-			return nullptr;
-		}
-	}
-
+	
 	template<class>
 	constexpr bool is_unbounded_array_v = false;
 	template<class T>
@@ -61,11 +47,11 @@ public:
 
 	explicit deep_ptr(T* obj) noexcept : std::unique_ptr<T>(obj) {};
 
-	deep_ptr(const deep_ptr& other) : std::unique_ptr<T>(deep_ptr_details::copy_or_clone(other.get())) {};
+	deep_ptr(const deep_ptr& other) : std::unique_ptr<T>(copy_or_clone(other.get())) {};
 
 	template <typename U>
 	 deep_ptr(const std::unique_ptr<U>& other)
-		: std::unique_ptr<T>(deep_ptr_details::copy_or_clone(other.get())) {}
+		: std::unique_ptr<T>(copy_or_clone(other.get())) {}
 
 	deep_ptr(deep_ptr&& other) noexcept
 		: std::unique_ptr<T>(other.release()) {}
@@ -83,7 +69,7 @@ public:
 	}
 
 	deep_ptr& operator=(const T& other) {
-		std::unique_ptr<T>::reset(deep_ptr_details::copy_or_clone(&other));
+		std::unique_ptr<T>::reset(copy_or_clone(&other));
 		return *this;
 	}
 
@@ -105,7 +91,7 @@ public:
 
 	template <typename U>
 	deep_ptr& operator=(const std::unique_ptr<U>& other) {
-		std::unique_ptr<T>::reset(deep_ptr_details::copy_or_clone(other.get()));
+		std::unique_ptr<T>::reset(copy_or_clone(other.get()));
 		return *this;
 	}
 
@@ -154,3 +140,18 @@ make_deep(std::size_t n)
 
 template<class T, class... Args>
 std::enable_if_t<deep_ptr_details::is_bounded_array_v<T>> make_deep(Args&&...) = delete;
+
+template <typename T>
+deep_ptr<T> copy_or_clone(T* ptr) {
+	if (ptr) {
+		if constexpr (deep_ptr_details::has_clone<T>::value) {
+			return ptr->clone();
+		}
+		else {
+			return  deep_ptr<T>(new T(*ptr));
+		}
+	}
+	else {
+		return deep_ptr<T>(nullptr);
+	}
+}

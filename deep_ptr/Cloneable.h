@@ -1,31 +1,37 @@
 #pragma once
 
-#define CLONEABLE(Type) \
-    virtual Type *clone() const = 0;
+// CRTP Interfaces for cloneable pattern. 
+// Set-up: The base class should derive from Cloneable
+// The derived class (One level of hierarchy supported) should derive directly 
+// from Cloner<Base, Derived> and not from Base.
+// Example:
 
-#define CLONER(Type) \
-    virtual Type *clone() const { std::cout << "Calling Clone" << '\n'; \
-    return new Type(*this); }
-
+// class A : public Cloneable<A>{  //Your implementation here }
+// class B : public Cloner<A , B>{ //Your implementation here }
 
 template <typename Base>
 class Cloneable {
-	virtual Base* clone_impl() const = 0;
+	virtual deep_ptr<Base> clone_impl() const = 0;
 public:
-	virtual Base* clone() { return clone_impl(); };
+	virtual deep_ptr<Base> clone() { return clone_impl(); };
 };
 
 
 template<typename Base, typename Derived>
 class Cloner : public Base {
-	virtual Base* clone_impl() const
-	{
-		std::cout << "Calling Clone from interface" << '\n';
+	
+	Derived* clone_helper() const {
 		return new Derived(static_cast<const Derived&>(*this));
 	}
+
+    virtual deep_ptr<Base> clone_impl() const
+	{
+		std::cout << "Calling Clone from interface" << '\n';
+		return deep_ptr<Base>(clone_helper());
+	}
 public:
-	virtual Derived* clone() const {
+	virtual deep_ptr<Derived> clone() const {
 		std::cout << "Calling Clone from derived" << '\n';
-		return static_cast<Derived*>(clone_impl());
+		return deep_ptr<Derived>(clone_helper());
 	};
 };
