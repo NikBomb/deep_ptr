@@ -53,7 +53,7 @@ int main() {
 	auto res = copied_user.compute();
 	// Create a deep_ptr of concrete class clone it as deep ptr and use it
 	// Note that while we return raw pointers we pass the ownership to a deep_ptr
-	// This is reasonable behaviour. The user is expected to manege the memory returned by clone as he pleases.
+	// This is reasonable behaviour. The user is expected to manage the memory returned by clone as he pleases.
 	deep_ptr<Computer> k = make_deep<Computer>(1, 2);
 	auto l = deep_ptr<Computer>(k->clone());
 	auto res2 = l->compute();
