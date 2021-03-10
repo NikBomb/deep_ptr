@@ -13,7 +13,8 @@ template <typename Base>
 class Cloneable {
 	virtual deep_ptr<Base> clone_impl() const = 0;
 public:
-	virtual deep_ptr<Base> clone() { return clone_impl(); };
+	virtual deep_ptr<Base> clone() const { return clone_impl(); };
+	virtual ~Cloneable() = default;
 };
 
 
@@ -24,13 +25,13 @@ class Cloner : public Base {
 		return new Derived(static_cast<const Derived&>(*this));
 	}
 
-    virtual deep_ptr<Base> clone_impl() const
+    virtual deep_ptr<Base> clone_impl() const override
 	{
 		std::cout << "Calling Clone from interface" << '\n';
 		return deep_ptr<Base>(clone_helper());
 	}
 public:
-	virtual deep_ptr<Derived> clone() const {
+	deep_ptr<Derived> pure_clone() const {
 		std::cout << "Calling Clone from derived" << '\n';
 		return deep_ptr<Derived>(clone_helper());
 	};

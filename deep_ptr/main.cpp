@@ -51,7 +51,7 @@ int main() {
 	auto res = copied_user.compute();
 	// Create a deep_ptr of concrete class clone it as deep ptr and use it
 	deep_ptr<Computer> k = make_deep<Computer>(1, 2);
-	auto l = k->clone();
+	auto l = k->pure_clone();
 	auto res2 = l->compute();
 
 	// Move the original user 
